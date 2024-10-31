@@ -18,6 +18,7 @@ enum FCPChannelTypes {
   static let updateListItem = "updateListItem"
   static let onListItemSelected = "onFCPListItemSelected"
   static let onListItemSelectedComplete = "onFCPListItemSelectedComplete"
+  static let onListImageRowItemSelected = "onFCPListImageRowItemSelected"
   static let onAlertActionPressed = "onFCPAlertActionPressed"
   static let setAlert = "setAlert"
   static let onPresentStateChanged = "onPresentStateChanged"

@@ -17,6 +17,8 @@ class CPListItem {
   /// An optional callback function that CarPlay invokes when the user selects the list item.
   final Function(Function() complete, CPListItem self)? onPress;
 
+  final Function(Function() complete, CPListItem self, int index)? onImagePress;
+
   /// Displays an image on the leading edge of the list item cell.
   /// Image asset path in pubspec.yaml file.
   /// For example: images/flutter_logo.png
@@ -25,7 +27,7 @@ class CPListItem {
   /// Playback progress status for the content that the list item represents.
   double? playbackProgress;
 
-  /// Determines whether the list item displays its Now Playing indicator.
+  /// Determines whether the list item displays its Now Playing indicaptor.
   bool? isPlaying;
 
   /// The location where the list item displays its Now Playing indicator.
@@ -33,6 +35,9 @@ class CPListItem {
 
   /// An accessory that the list item displays in its trailing region.
   CPListItemAccessoryTypes? accessoryType;
+
+  List<String>? images;
+  List<String>? titles;
 
   /// Creates [CPListItem] that manages the content of a single row in a [CPListTemplate].
   /// CarPlay manages the layout of a list item and may adjust its layout to allow for
@@ -43,11 +48,14 @@ class CPListItem {
     required this.text,
     this.detailText,
     this.onPress,
+    this.onImagePress,
     this.image,
     this.playbackProgress,
     this.isPlaying,
     this.playingIndicatorLocation,
     this.accessoryType,
+    this.images,
+    this.titles,
   });
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +64,8 @@ class CPListItem {
         "detailText": detailText,
         "onPress": onPress != null ? true : false,
         "image": image,
+        "images": images,
+        "titles": titles,
         "playbackProgress": playbackProgress,
         "isPlaying": isPlaying,
         "playingIndicatorLocation":

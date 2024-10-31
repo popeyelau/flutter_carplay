@@ -5,6 +5,7 @@ enum FCPChannelTypes {
   updateListItem,
   onFCPListItemSelected,
   onFCPListItemSelectedComplete,
+  onFCPListImageRowItemSelected,
   onFCPAlertActionPressed,
   setAlert,
   onPresentStateChanged,

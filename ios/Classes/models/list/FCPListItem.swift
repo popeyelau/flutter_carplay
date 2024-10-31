@@ -9,7 +9,7 @@ import CarPlay
 
 @available(iOS 14.0, *)
 class FCPListItem {
-  private(set) var _super: CPListItem?
+  private(set) var _super: CPSelectableListItem?
   private(set) var elementId: String
   private var text: String
   private var detailText: String?
@@ -20,7 +20,9 @@ class FCPListItem {
   private var isPlaying: Bool?
   private var playingIndicatorLocation: CPListItemPlayingIndicatorLocation?
   private var accessoryType: CPListItemAccessoryType?
-  
+  private var images: [String]?
+  private var titles: [String]?
+
   init(obj: [String : Any]) {
     self.elementId = obj["_elementId"] as! String
     self.text = obj["text"] as! String
@@ -31,9 +33,60 @@ class FCPListItem {
     self.isPlaying = obj["isPlaying"] as? Bool
     self.setPlayingIndicatorLocation(fromString: obj["playingIndicatorLocation"] as? String)
     self.setAccessoryType(fromString: obj["accessoryType"] as? String)
+    self.images = obj["images"] as? [String]
+    self.titles = obj["titles"] as? [String]
   }
-  
-  var get: CPListItem {
+
+
+  var getImageRowItem: CPListTemplateItem {
+      let uiImages = images?.compactMap {
+          return  UIImage().fromCorrectSource(name: $0)
+      }
+      
+      var listItem: CPListImageRowItem
+      if #available(iOS 17.4, *) {
+        listItem = CPListImageRowItem(text: text, images: uiImages!, imageTitles: titles!)
+      } else {
+        listItem = CPListImageRowItem(text: text, images: uiImages!)
+      }
+      
+      listItem.listImageRowHandler = ((CPListImageRowItem, Int, @escaping () -> Void) -> Void)? { item, index, complete in
+          if self.isOnPressListenerActive == true {
+            DispatchQueue.main.async {
+              self.completeHandler = complete
+              FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onListImageRowItemSelected,
+                                               data: ["elementId": self.elementId, "index": index])
+            }
+          } else {
+            complete()
+          }
+      }
+
+      listItem.handler = ((CPSelectableListItem, @escaping () -> Void) -> Void)? { selectedItem, complete in
+        if self.isOnPressListenerActive == true {
+          DispatchQueue.main.async {
+            self.completeHandler = complete
+            FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onListItemSelected,
+                                             data: ["elementId": self.elementId])
+          }
+        } else {
+          complete()
+        }
+      }
+
+      self._super = listItem
+      return listItem
+    }
+
+
+  var get: CPListTemplateItem {
+
+
+      if let _ = images {
+          return getImageRowItem
+      }
+
+
     let listItem = CPListItem.init(text: text, detailText: detailText)
     listItem.handler = ((CPSelectableListItem, @escaping () -> Void) -> Void)? { selectedItem, complete in
       if self.isOnPressListenerActive == true {
@@ -73,7 +126,7 @@ class FCPListItem {
     self._super = listItem
     return listItem
   }
-  
+
   public func stopHandler() {
     guard self.completeHandler != nil else {
       return
@@ -81,48 +134,72 @@ class FCPListItem {
     self.completeHandler!()
     self.completeHandler = nil
   }
-  
+
   public func update(text: String?, detailText: String?, image: String?, playbackProgress: CGFloat?, isPlaying: Bool?, playingIndicatorLocation: String?, accessoryType: String?) {
     if text != nil {
-      self._super?.setText(text!)
+        if _super is CPListItem {
+            (self._super as? CPListItem)?.setText(text!)
+        }
       self.text = text!
     }
     if detailText != nil {
-      self._super?.setDetailText(detailText)
+
+        if _super is CPListItem {
+            (self._super as? CPListItem)?.setDetailText(detailText)
+        }
+
+
       self.detailText = detailText
     }
     if image != nil {
       DispatchQueue.global(qos: .background).async {
         let uiImage = UIImage().fromCorrectSource(name: image!)
         DispatchQueue.main.async {
-          self._super?.setImage(uiImage)
+
+            if self._super is CPListItem {
+                (self._super as? CPListItem)?.setImage(uiImage)
+            }
+
         }
       }
-      
+
       self.image = image
     }
     if playbackProgress != nil {
-      self._super?.playbackProgress = playbackProgress!
+        if _super is CPListItem {
+            (self._super as? CPListItem)?.playbackProgress = playbackProgress!
+        }
+
       self.playbackProgress = playbackProgress
     }
     if isPlaying != nil {
-      self._super?.isPlaying = isPlaying!
+        if _super is CPListItem {
+            (self._super as? CPListItem)?.isPlaying = isPlaying!
+        }
+
+
       self.isPlaying = isPlaying
     }
     if playingIndicatorLocation != nil {
       self.setPlayingIndicatorLocation(fromString: playingIndicatorLocation)
       if self.playingIndicatorLocation != nil {
-        self._super?.playingIndicatorLocation = self.playingIndicatorLocation!
+
+          if _super is CPListItem {
+              (self._super as? CPListItem)?.playingIndicatorLocation = self.playingIndicatorLocation!
+          }
+
       }
     }
     if accessoryType != nil {
       self.setAccessoryType(fromString: accessoryType)
       if self.accessoryType != nil {
-        self._super?.accessoryType = self.accessoryType!
+          if _super is CPListItem {
+              (self._super as? CPListItem)?.accessoryType = self.accessoryType!
+          }
       }
     }
   }
-  
+
   private func setPlayingIndicatorLocation(fromString: String?) {
     if fromString == "leading" {
       self.playingIndicatorLocation = CPListItemPlayingIndicatorLocation.leading
@@ -130,7 +207,7 @@ class FCPListItem {
       self.playingIndicatorLocation = CPListItemPlayingIndicatorLocation.trailing
     }
   }
-  
+
   private func setAccessoryType(fromString: String?) {
     if fromString == "cloud" {
       self.accessoryType = CPListItemAccessoryType.cloud
@@ -141,3 +218,4 @@ class FCPListItem {
     }
   }
 }
+
