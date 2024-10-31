@@ -43,12 +43,7 @@ class FCPListItem {
           return  UIImage().fromCorrectSource(name: $0)
       }
       
-      var listItem: CPListImageRowItem
-      if #available(iOS 17.4, *) {
-        listItem = CPListImageRowItem(text: text, images: uiImages!, imageTitles: titles!)
-      } else {
-        listItem = CPListImageRowItem(text: text, images: uiImages!)
-      }
+      let listItem = CPListImageRowItem(text: text, images: uiImages!)
       
       listItem.listImageRowHandler = ((CPListImageRowItem, Int, @escaping () -> Void) -> Void)? { item, index, complete in
           if self.isOnPressListenerActive == true {
