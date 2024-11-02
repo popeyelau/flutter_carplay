@@ -1,3 +1,4 @@
+import 'package:flutter_carplay/controllers/carplay_controller.dart';
 import 'package:flutter_carplay/models/button/bar_button.dart';
 import 'package:flutter_carplay/models/list/list_section.dart';
 import 'package:uuid/uuid.dart';
@@ -12,21 +13,21 @@ class CPListTemplate {
   final String? title;
 
   /// An array of list sections as [CPListSection], each can contain zero or more list items.
-  final List<CPListSection> sections;
+  List<CPListSection> sections;
 
   /// An optional array of title variants for the template’s empty view.
   /// Provide the strings as localized displayable content and order from most- to
   /// least- preferred. When there are no items in the list, the template displays
   /// an empty view with a title and a subtitle in place of the items. If you update
   /// the list and provide items, the template automatically removes the empty view.
-  final List<String>? emptyViewTitleVariants;
+  List<String>? emptyViewTitleVariants;
 
   /// An optional array of subtitle variants for the template’s empty view.
   /// Provide the strings as localized displayable content and order from most- to
   /// least- preferred. When there are no items in the list, the template displays
   /// an empty view with a title and a subtitle in place of the items. If you update
   /// the list and provide items, the template automatically removes the empty view.
-  final List<String>? emptyViewSubtitleVariants;
+  List<String>? emptyViewSubtitleVariants;
 
   /// An indicator you use to call attention to the tab. When it is true, a small
   /// red indicator will be displayed on the tab in order to show user that it requires
@@ -82,6 +83,21 @@ class CPListTemplate {
         "systemIcon": systemIcon,
         "backButton": backButton?.toJson(),
       };
+
+  void update({
+    required List<CPListSection> sections,
+    List<String>? emptyViewTitleVariants,
+    List<String>? emptyViewSubtitleVariants,
+  }) {
+    this.sections = sections;
+    if (emptyViewTitleVariants != null) {
+      this.emptyViewTitleVariants = emptyViewTitleVariants;
+    }
+    if (emptyViewSubtitleVariants != null) {
+      this.emptyViewSubtitleVariants = emptyViewSubtitleVariants;
+    }
+    FlutterCarPlayController.updateCPListTemplate(this);
+  }
 
   String get uniqueId {
     return _elementId;

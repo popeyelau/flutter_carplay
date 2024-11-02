@@ -13,6 +13,7 @@ enum FCPChannelTypes {
   closePresent,
   pushTemplate,
   showNowPlaying,
+  updateNowPlaying,
   onGridButtonPressed,
   onNowPlayingButtonPressed,
   setVoiceControl,
@@ -21,4 +22,5 @@ enum FCPChannelTypes {
   onTextButtonPressed,
   popToRootTemplate,
   updateTabBarTemplates,
+  updateListTemplate,
 }

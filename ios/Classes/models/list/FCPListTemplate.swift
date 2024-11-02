@@ -59,6 +59,29 @@ class FCPListTemplate {
   public func getSections() -> [FCPListSection] {
     return objcSections
   }
+    
+    
+    
+    public func update(sections: [FCPListSection]?, emptyViewTitleVariants: [String]?, emptyViewSubtitleVariants: [String]? ) {
+            if let _sections = sections {
+                objcSections = _sections
+                self.sections = _sections.map {
+                    $0.get
+                }
+                
+                if let _emptyViewTitleVariants = emptyViewTitleVariants {
+                    self.emptyViewTitleVariants = _emptyViewTitleVariants
+                }
+                
+                if let _emptyViewSubtitleVariants = emptyViewSubtitleVariants {
+                    self.emptyViewSubtitleVariants = _emptyViewSubtitleVariants
+                }
+                
+                _super?.updateSections(self.sections)
+                _super?.emptyViewTitleVariants = self.emptyViewTitleVariants
+                _super?.emptyViewSubtitleVariants = self.emptyViewSubtitleVariants
+            }
+    }
 }
 
 @available(iOS 14.0, *)

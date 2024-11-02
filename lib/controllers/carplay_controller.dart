@@ -187,4 +187,38 @@ class FlutterCarPlayController {
       }
     }
   }
+
+  /// Updates the [CPListTemplate]
+  static void updateCPListTemplate(CPListTemplate updatedTemplate) {
+    final elementId = updatedTemplate.uniqueId;
+    _methodChannel
+        .invokeMethod(
+      FCPChannelTypes.updateListTemplate.name,
+      updatedTemplate.toJson(),
+    )
+        .then((value) {
+      if (value) {
+         l1:
+        for (var template in templateHistory) {
+          switch (template) {
+            case CPTabBarTemplate:
+              for (var t in (template as CPTabBarTemplate).templates) {
+                if (t.uniqueId == elementId) {
+                  template.templates[currentRootTemplate!.templates.indexOf(t)] = updatedTemplate;
+                  break l1;
+                }
+              }
+              break;
+            case CPListTemplate:
+              if ((template as CPListTemplate).uniqueId == elementId) {
+                template = updatedTemplate;
+                 break l1;
+              }
+              break;
+            default:
+          }
+        }
+      }
+    });
+  }
 }

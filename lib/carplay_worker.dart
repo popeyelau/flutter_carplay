@@ -320,6 +320,18 @@ class FlutterCarplay {
     return isCompleted;
   }
 
+  static Future<bool> updateNowPlaying({
+    bool isFavorited = false,
+    bool isShuffle = false,
+  }) async {
+    bool isCompleted = await _carPlayController.reactToNativeModule(
+        FCPChannelTypes.updateNowPlaying, <String, dynamic>{
+      "isFavorited": isFavorited,
+      "isShuffle": isShuffle,
+    });
+    return isCompleted;
+  }
+
   /// Updates the TabBar template it's children
   ///
   /// Only [CPListTemplate] items can be used to update the tabBar template it's children

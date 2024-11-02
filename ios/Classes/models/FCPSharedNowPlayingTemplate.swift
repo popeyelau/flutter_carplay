@@ -21,33 +21,26 @@ class FCPSharedNowPlayingTemplate {
     
     var get: CPNowPlayingTemplate {
         let shared = CPNowPlayingTemplate.shared
-        updateNowPlayingButtons()
+        FCPSharedNowPlayingTemplate.updateNowPlayingButtons(isFavorited: self.isFavorited, isShuffle: self.isShuffle)
         return shared
     }
     
     
-    func updateNowPlayingButtons() {
+    static func updateNowPlayingButtons(isFavorited: Bool, isShuffle: Bool) {
         let shared = CPNowPlayingTemplate.shared
         let favoriteSystemName = isFavorited ? "heart.fill" : "heart"
-        let favoriteButton = CPNowPlayingImageButton(image: UIImage(systemName: favoriteSystemName)!, handler: {[weak self] _ in
+        let favoriteButton = CPNowPlayingImageButton(image: UIImage(systemName: favoriteSystemName)!, handler: { _ in
             DispatchQueue.main.async {
-                guard let self = self else { return }
-               
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "favorite"])
-                self.isFavorited = !self.isFavorited
-                self.updateNowPlayingButtons()
             }
         })
 
         let shuffleSystemName = isShuffle ? "shuffle" : "repeat"
-        let shuffleButton = CPNowPlayingImageButton(image: UIImage(systemName: shuffleSystemName)!,handler: { [weak self] _ in
+        let shuffleButton = CPNowPlayingImageButton(image: UIImage(systemName: shuffleSystemName)!,handler: { _ in
             DispatchQueue.main.async {
-                guard let self = self else { return }
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "shuffle"])
-                self.isShuffle = !self.isShuffle
-                self.updateNowPlayingButtons()
             }
         })
         

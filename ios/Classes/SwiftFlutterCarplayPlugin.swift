@@ -17,7 +17,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
   private static var _rootTemplate: CPTemplate?
   public static var animated: Bool = false
   private var objcPresentTemplate: FCPPresentTemplate?
-  
+
   public static var rootTemplate: CPTemplate? {
     get {
       return _rootTemplate
@@ -26,14 +26,14 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       _rootTemplate = tabBarTemplate
     }
   }
-  
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: makeFCPChannelId(event: ""),
                                        binaryMessenger: registrar.messenger())
     let instance = SwiftFlutterCarplayPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
     self.registrar = registrar
-    
+
     self.streamHandler = FCPStreamHandlerPlugin(registrar: registrar)
   }
 
@@ -44,7 +44,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
         result(false)
         return
       }
-  
+
       SwiftFlutterCarplayPlugin.templateStack = []
       var rootTemplate: FCPRootTemplate?
       switch args["runtimeType"] as! String {
@@ -105,6 +105,20 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       })
       result(true)
       break
+
+
+    case FCPChannelTypes.updateListTemplate:
+      guard let args = call.arguments as? [String: Any],
+            let elementId = args["_elementId"] as? String,
+            let sections = args["sections"] as? [[String: Any]]
+      else {
+          result(false)
+          return
+      }
+        
+      updateListTemplate(elementId: elementId, sections: sections, args: args)
+      result(true)
+
     case FCPChannelTypes.onListItemSelectedComplete:
       guard let args = call.arguments as? String else {
         result(false)
@@ -178,13 +192,27 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
           result(false)
           return
       }
-        
+
       let animated = args["animated"] as? Bool ?? false
       let template = FCPSharedNowPlayingTemplate(obj: args)
       SwiftFlutterCarplayPlugin.templateStack.append(template)
       FlutterCarPlaySceneDelegate.push(template: template.get, animated: animated)
       result(true)
       break
+        
+    case FCPChannelTypes.updateNowPlaying:
+      guard let args = call.arguments as? [String : Any] else {
+          result(false)
+          return
+      }
+        
+      let isFavorited = args["isFavorited"] as? Bool ?? false
+      let isShuffle = args["isShuffle"] as? Bool ?? false
+      FCPSharedNowPlayingTemplate.updateNowPlayingButtons(isFavorited: isFavorited, isShuffle: isShuffle)
+     
+      result(true)
+      break
+        
     case FCPChannelTypes.pushTemplate:
       guard let args = call.arguments as? [String : Any] else {
         result(false)
@@ -208,7 +236,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
         SwiftFlutterCarplayPlugin.templateStack.append(template)
         pushTemplate = template.get
         break
-    
+
       case String(describing: FCPListTemplate.self):
         let template = FCPListTemplate(obj: args["template"] as! [String : Any], templateType: FCPListTemplateTypes.DEFAULT)
         SwiftFlutterCarplayPlugin.templateStack.append(template)
@@ -242,7 +270,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       }
       SwiftFlutterCarplayPlugin.templateStack = []
       let newTemplates = args["newTemplates"] as! Array<[String : Any]>
-      objcRootTemplate.updateTemplates(newTemplates: newTemplates);   
+      objcRootTemplate.updateTemplates(newTemplates: newTemplates);
       result(true)
       break
     default:
@@ -250,23 +278,23 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       break
     }
   }
-  
+
   static func createEventChannel(event: String?) -> FlutterEventChannel {
     let eventChannel = FlutterEventChannel(name: makeFCPChannelId(event: event),
                                            binaryMessenger: SwiftFlutterCarplayPlugin.registrar!.messenger())
     return eventChannel
   }
-  
+
   static func onCarplayConnectionChange(status: String) {
     FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onCarplayConnectionChange,
                                      data: ["status": status])
   }
-    
+
     static func sendSpeechRecognitionTranscriptChangeEvent(transcript: String) {
         FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onVoiceControlTranscriptChanged,
                                          data: ["transcript": transcript])
     }
-  
+
   static func findItem(elementId: String, actionWhenFound: (_ item: FCPListItem) -> Void) {
     let objcRootTemplateType = String(describing: SwiftFlutterCarplayPlugin.objcRootTemplate).match(#"(.*flutter_carplay\.(.*)\))"#)[0][2]
     var templates: [FCPListTemplate] = []
@@ -300,4 +328,50 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       }
     }
   }
+
+    static func getFCPListTemplatesFromHistory() -> [FCPListTemplate] {
+
+        let objcRootTemplateType = String(describing: SwiftFlutterCarplayPlugin.objcRootTemplate).match(#"(.*flutter_carplay\.(.*)\))"#)[0][2]
+        var templates: [FCPListTemplate] = []
+        if (objcRootTemplateType.elementsEqual(String(describing: FCPListTemplate.self))) {
+          templates.append(SwiftFlutterCarplayPlugin.objcRootTemplate as! FCPListTemplate)
+        } else if (objcRootTemplateType.elementsEqual(String(describing: FCPTabBarTemplate.self))) {
+          templates = (SwiftFlutterCarplayPlugin.objcRootTemplate as! FCPTabBarTemplate).getTemplates()
+        }
+
+        for t in templateStack {
+          if (t is FCPListTemplate) {
+            guard let template = t as? FCPListTemplate else {
+              break;
+            }
+            templates.append(template)
+          }
+        }
+        return templates
+
+     }
+
+
+    static func findListTemplate(elementId: String, actionWhenFound: (_ listTemplate: FCPListTemplate) -> Void) {
+        // Get the array of FCPListTemplate instances.
+        let templates = getFCPListTemplatesFromHistory()
+        // Iterate through the templates to find the one with the matching element ID.
+        for template in templates where template.elementId == elementId {
+            // Perform the specified action when the template is found.
+            actionWhenFound(template)
+            break
+        }
+    }
+
+
+    private func updateListTemplate(elementId: String, sections: [[String: Any]], args: [String: Any]) {
+           // Find the list template based on the provided element ID
+           SwiftFlutterCarplayPlugin.findListTemplate(elementId: elementId) { listTemplate in
+               // Update the list template with the extracted data
+               listTemplate.update(sections: sections.map { FCPListSection(obj: $0) },
+                                   emptyViewTitleVariants: args["emptyViewTitleVariants"] as? [String],
+                                   emptyViewSubtitleVariants: args["emptyViewSubtitleVariants"] as? [String])
+
+           }
+       }
 }
