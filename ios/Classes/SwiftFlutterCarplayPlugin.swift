@@ -174,11 +174,13 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
       result(true)
       break
     case FCPChannelTypes.showNowPlaying:
-      guard let animated = call.arguments as? Bool else {
-        result(false)
-        return
+      guard let args = call.arguments as? [String : Any] else {
+          result(false)
+          return
       }
-      let template = FCPSharedNowPlayingTemplate()
+        
+      let animated = args["animated"] as? Bool ?? false
+      let template = FCPSharedNowPlayingTemplate(obj: args)
       SwiftFlutterCarplayPlugin.templateStack.append(template)
       FlutterCarPlaySceneDelegate.push(template: template.get, animated: animated)
       result(true)
@@ -259,6 +261,11 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
     FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onCarplayConnectionChange,
                                      data: ["status": status])
   }
+    
+    static func sendSpeechRecognitionTranscriptChangeEvent(transcript: String) {
+        FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onVoiceControlTranscriptChanged,
+                                         data: ["transcript": transcript])
+    }
   
   static func findItem(elementId: String, actionWhenFound: (_ item: FCPListItem) -> Void) {
     let objcRootTemplateType = String(describing: SwiftFlutterCarplayPlugin.objcRootTemplate).match(#"(.*flutter_carplay\.(.*)\))"#)[0][2]

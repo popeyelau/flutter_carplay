@@ -31,6 +31,7 @@ class FlutterCarplay {
   /// and will be transmitted to the main code, allowing the user to access
   /// the current connection status.
   Function(CPConnectionStatusTypes status)? _onCarplayConnectionChange;
+  Function(String action)? _onNowPlayingButtonAction;
 
   /// Creates an [FlutterCarplay] and starts the connection.
   FlutterCarplay() {
@@ -76,6 +77,10 @@ class FlutterCarplay {
         case FCPChannelTypes.onGridButtonPressed:
           _carPlayController
               .processFCPGridButtonPressed(event["data"]["elementId"]);
+          break;
+        case FCPChannelTypes.onNowPlayingButtonPressed:
+          final action = event["data"]["action"];
+          _onNowPlayingButtonAction?.call(action);
           break;
         case FCPChannelTypes.onBarButtonPressed:
           _carPlayController
@@ -125,6 +130,16 @@ class FlutterCarplay {
   /// on CarPlay connection status changed.
   void removeListenerOnConnectionChange() {
     _onCarplayConnectionChange = null;
+  }
+
+  void addListenerOnNowPlayingButtonAction(
+    Function(String action) onNowPlayingButtonAction,
+  ) {
+    _onNowPlayingButtonAction = onNowPlayingButtonAction;
+  }
+
+  void removeListenerOnNowPlayingButtonAction() {
+    _onNowPlayingButtonAction = null;
   }
 
   /// Current CarPlay connection status. It will return one of [CPConnectionStatusTypes] as String.
@@ -292,12 +307,16 @@ class FlutterCarplay {
   ///
   /// - If animated is true, CarPlay animates the transition between templates.
   static Future<bool> showSharedNowPlaying({
+    bool isFavorited = false,
+    bool isShuffle = false,
     bool animated = true,
   }) async {
-    bool isCompleted = await _carPlayController.reactToNativeModule(
-      FCPChannelTypes.showNowPlaying,
-      animated,
-    );
+    bool isCompleted = await _carPlayController
+        .reactToNativeModule(FCPChannelTypes.showNowPlaying, <String, dynamic>{
+      "animated": animated,
+      "isFavorited": isFavorited,
+      "isShuffle": isShuffle,
+    });
     return isCompleted;
   }
 
