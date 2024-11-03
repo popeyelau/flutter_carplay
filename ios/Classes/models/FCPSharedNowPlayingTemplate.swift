@@ -43,8 +43,15 @@ class FCPSharedNowPlayingTemplate {
                                                  data: ["action": "shuffle"])
             }
         })
+
+        let moreButton = CPNowPlayingMoreButton(handler: { _ in
+            DispatchQueue.main.async {
+                FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
+                                                 data: ["action": "more"])
+            }
+        })
         
-        shared.updateNowPlayingButtons([favoriteButton, shuffleButton])
+        shared.updateNowPlayingButtons([favoriteButton, shuffleButton, moreButton])
     }
 }
 
