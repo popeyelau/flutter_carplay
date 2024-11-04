@@ -39,13 +39,13 @@ enum FCPChannelTypes {
   static let setVoiceControl = "setVoiceControl"
   static let activateVoiceControlState = "activateVoiceControlState"
   static let getActiveVoiceControlStateIdentifier = "getActiveVoiceControlStateIdentifier"
-static let startVoiceControl = "startVoiceControl"
-static let stopVoiceControl = "stopVoiceControl"
-static let setVoiceControlState = "setVoiceControlState"
-    static let speak = "speak"
-    static let playAudio = "playAudio"
-    static let onSpeechCompleted = "onSpeechCompleted"
-
+  static let startVoiceControl = "startVoiceControl"
+  static let stopVoiceControl = "stopVoiceControl"
+  static let setVoiceControlState = "setVoiceControlState"
+  static let speak = "speak"
+  static let playAudio = "playAudio"
+  static let onSpeechCompleted = "onSpeechCompleted"
+  static let onSearchViaSiri = "onSearchViaSiri"
 }
 
 enum FCPAlertActionTypes {

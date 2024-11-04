@@ -33,6 +33,8 @@ class FlutterCarplay {
   /// and will be transmitted to the main code, allowing the user to access
   /// the current connection status.
   Function(CPConnectionStatusTypes status)? _onCarplayConnectionChange;
+  Function(String? mediaName, String? albumName, String? artistName)?
+      _onSiriSearch;
   Function(String action)? _onNowPlayingButtonAction;
 
   /// A listener function that will be triggered each time user's voice is recognized
@@ -66,6 +68,15 @@ class FlutterCarplay {
               CPEnumUtils.stringFromEnum(connectionStatus.toString());
           if (_onCarplayConnectionChange != null) {
             _onCarplayConnectionChange!(connectionStatus);
+          }
+          break;
+        case FCPChannelTypes.onSearchViaSiri:
+          if (_onSiriSearch != null) {
+            _onSiriSearch!(
+              event["data"]["mediaName"],
+              event["data"]["albumName"],
+              event["data"]["artistName"],
+            );
           }
           break;
         case FCPChannelTypes.onFCPListItemSelected:
@@ -137,6 +148,17 @@ class FlutterCarplay {
     Function(CPConnectionStatusTypes status) onCarplayConnectionChange,
   ) {
     _onCarplayConnectionChange = onCarplayConnectionChange;
+  }
+
+  void addListenerOnSiriSearch(
+    Function(String? mediaName, String? albumName, String? artistName)
+        onSiriSearch,
+  ) {
+    _onSiriSearch = onSiriSearch;
+  }
+
+  void removeListenerOnSiriSearch() {
+    _onSiriSearch = null;
   }
 
   /// Removes the callback function that has been set before in order to listen

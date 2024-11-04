@@ -7,6 +7,7 @@
 
 import CarPlay
 import Flutter
+import Intents
 
 @available(iOS 14.0, *)
 public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
@@ -237,9 +238,9 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
             FlutterCarPlaySceneDelegate.popToRootTemplate(animated: animated)
             self.objcPresentTemplate = nil
             result(true)
-            
-        
-            
+
+
+
         case FCPChannelTypes.setVoiceControl:
             guard let args = call.arguments as? [String: Any],
                               let animated = args["animated"] as? Bool,
@@ -267,8 +268,8 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                                 result(completed)
                             })
                         }
-            
-        
+
+
         case FCPChannelTypes.activateVoiceControlState:
             guard objcPresentTemplate != nil else {
                             result(FlutterError(code: "ERROR",
@@ -301,8 +302,8 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                 } else {
                     result(nil)
                 }
-        
-            
+
+
         case FCPChannelTypes.startVoiceControl:
                    guard objcPresentTemplate != nil else {
                        result(FlutterError(code: "ERROR",
@@ -358,9 +359,9 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                    FCPSoundEffects.shared.prepare(sound: soundPath, volume: volume.floatValue)
                    FCPSoundEffects.shared.play()
                    result(true)
-            
-            
-            
+
+
+
         case FCPChannelTypes.updateTabBarTemplates:
             guard let args = call.arguments as? [String: Any] else {
                 result(false)
@@ -468,5 +469,19 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                                 emptyViewTitleVariants: args["emptyViewTitleVariants"] as? [String],
                                 emptyViewSubtitleVariants: args["emptyViewSubtitleVariants"] as? [String])
         }
+    }
+
+     public static func searchViaSiri(intent: INPlayMediaIntent) {
+        let mediaName = intent.mediaSearch?.mediaName ?? ""
+        let albumName = intent.mediaSearch?.albumName ?? ""
+        let artistName = intent.mediaSearch?.artistName ?? ""
+         
+        if mediaName.isEmpty && albumName.isEmpty && artistName.isEmpty {
+             return
+        }
+         
+        FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSearchViaSiri,
+                                         data: ["mediaName": mediaName, "albumName": albumName, "artistName": artistName])
+
     }
 }

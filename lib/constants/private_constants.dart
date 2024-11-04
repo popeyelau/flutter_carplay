@@ -28,4 +28,5 @@ enum FCPChannelTypes {
   getActiveVoiceControlStateIdentifier,
   startVoiceControl,
   stopVoiceControl,
+  onSearchViaSiri,
 }
