@@ -23,4 +23,9 @@ enum FCPChannelTypes {
   popToRootTemplate,
   updateTabBarTemplates,
   updateListTemplate,
+  speak,
+  activateVoiceControlState,
+  getActiveVoiceControlStateIdentifier,
+  startVoiceControl,
+  stopVoiceControl,
 }

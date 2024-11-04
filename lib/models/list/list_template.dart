@@ -36,6 +36,7 @@ class CPListTemplate {
   /// CarPlay only displays the red indicator when the template is a root-template
   /// of a tab bar, otherwise setting this property has no effect.
   final bool showsTabBadge;
+  final bool showSiri;
 
   /// A system icon which will be used in a image that represents the content of the tab.
   ///
@@ -69,6 +70,7 @@ class CPListTemplate {
     this.emptyViewTitleVariants,
     this.emptyViewSubtitleVariants,
     this.showsTabBadge = false,
+    this.showSiri = false,
     required this.systemIcon,
     this.backButton,
   });
@@ -80,6 +82,7 @@ class CPListTemplate {
         "emptyViewTitleVariants": emptyViewTitleVariants,
         "emptyViewSubtitleVariants": emptyViewSubtitleVariants,
         "showsTabBadge": showsTabBadge,
+        "showSiri": showSiri,
         "systemIcon": systemIcon,
         "backButton": backButton?.toJson(),
       };

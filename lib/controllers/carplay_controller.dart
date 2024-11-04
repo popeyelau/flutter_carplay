@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_carplay/flutter_carplay.dart';
 import 'package:flutter_carplay/helpers/carplay_helper.dart';
 import 'package:flutter_carplay/constants/private_constants.dart';
+import 'package:flutter_carplay/models/speaker/carplay_speaker.dart';
 
 /// [FlutterCarPlayController] is an root object in order to control and communication
 /// system with the Apple CarPlay and native functions.
@@ -20,6 +21,9 @@ class FlutterCarPlayController {
 
   /// [CPAlertTemplate], [CPActionSheetTemplate]
   static dynamic currentPresentTemplate;
+
+  /// Specific objects that are waiting to receive callback.
+  static List<dynamic> callbackObjects = [];
 
   MethodChannel get methodChannel {
     return _methodChannel;
@@ -198,13 +202,14 @@ class FlutterCarPlayController {
     )
         .then((value) {
       if (value) {
-         l1:
+        l1:
         for (var template in templateHistory) {
           switch (template) {
             case CPTabBarTemplate:
               for (var t in (template as CPTabBarTemplate).templates) {
                 if (t.uniqueId == elementId) {
-                  template.templates[currentRootTemplate!.templates.indexOf(t)] = updatedTemplate;
+                  template.templates[currentRootTemplate!.templates
+                      .indexOf(t)] = updatedTemplate;
                   break l1;
                 }
               }
@@ -212,13 +217,27 @@ class FlutterCarPlayController {
             case CPListTemplate:
               if ((template as CPListTemplate).uniqueId == elementId) {
                 template = updatedTemplate;
-                 break l1;
+                break l1;
               }
               break;
             default:
           }
         }
       }
+    });
+  }
+
+  /// Processes the FCPPointOfInterestTemplateCompletedChannel
+  ///
+  /// Parameters:
+  /// - elementId: The id of the [CPPointOfInterestTemplate]
+  void processFCPSpeakerOnComplete(String elementId) {
+    callbackObjects.removeWhere((e) {
+      if (e is CPSpeaker) {
+        e.onCompleted?.call();
+        return true;
+      }
+      return false;
     });
   }
 }

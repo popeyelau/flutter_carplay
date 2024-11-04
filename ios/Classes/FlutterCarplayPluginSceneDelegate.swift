@@ -28,31 +28,27 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
     SwiftFlutterCarplayPlugin.onCarplayConnectionChange(status: FCPConnectionTypes.background)
   }
   
-  static public func pop(animated: Bool) {
-      self.interfaceController?.popTemplate(animated: animated, completion: nil)
+  static public func pop(animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
+      self.interfaceController?.popTemplate(animated: animated, completion: completion)
   }
   
-  static public func popToRootTemplate(animated: Bool) {
-      self.interfaceController?.popToRootTemplate(animated: animated, completion: nil)
+  static public func popToRootTemplate(animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
+      self.interfaceController?.popToRootTemplate(animated: animated, completion: completion)
   }
   
-  static public func push(template: CPTemplate, animated: Bool) {
-    self.interfaceController?.pushTemplate(template, animated: animated, completion: nil)
+  static public func push(template: CPTemplate, animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
+    self.interfaceController?.pushTemplate(template, animated: animated, completion: completion)
   }
   
-  static public func closePresent(animated: Bool) {
-    self.interfaceController?.dismissTemplate(animated: animated, completion: nil)
+  static public func closePresent(animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
+    self.interfaceController?.dismissTemplate(animated: animated, completion: completion)
   }
   
   static public func presentTemplate(template: CPTemplate, animated: Bool,
-                                     onPresent: @escaping (_ completed: Bool) -> Void) {
-    self.interfaceController?.presentTemplate(template, animated: animated, completion: { completed, error in
-      guard error != nil else {
-        onPresent(false)
-        return
-      }
-      onPresent(completed)
-    })
+                                     completion: ((Bool, Error?) -> Void)? = nil) {
+      
+     self.interfaceController?.presentTemplate(template, animated: animated, completion: completion)
+
   }
   
   func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene,
