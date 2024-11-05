@@ -470,18 +470,10 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                                 emptyViewSubtitleVariants: args["emptyViewSubtitleVariants"] as? [String])
         }
     }
-
-     public static func searchViaSiri(intent: INPlayMediaIntent) {
-        let mediaName = intent.mediaSearch?.mediaName ?? ""
-        let albumName = intent.mediaSearch?.albumName ?? ""
-        let artistName = intent.mediaSearch?.artistName ?? ""
-         
-        if mediaName.isEmpty && albumName.isEmpty && artistName.isEmpty {
-             return
-        }
-         
+    
+     public static func searchViaSiri(mediaName: String) {
         FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSearchViaSiri,
-                                         data: ["mediaName": mediaName, "albumName": albumName, "artistName": artistName])
+                                         data: ["mediaName": mediaName])
 
     }
 }

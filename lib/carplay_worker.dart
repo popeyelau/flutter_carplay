@@ -33,8 +33,7 @@ class FlutterCarplay {
   /// and will be transmitted to the main code, allowing the user to access
   /// the current connection status.
   Function(CPConnectionStatusTypes status)? _onCarplayConnectionChange;
-  Function(String? mediaName, String? albumName, String? artistName)?
-      _onSiriSearch;
+  Function(String mediaName)? _onSiriSearch;
   Function(String action)? _onNowPlayingButtonAction;
 
   /// A listener function that will be triggered each time user's voice is recognized
@@ -74,8 +73,6 @@ class FlutterCarplay {
           if (_onSiriSearch != null) {
             _onSiriSearch!(
               event["data"]["mediaName"],
-              event["data"]["albumName"],
-              event["data"]["artistName"],
             );
           }
           break;
@@ -151,8 +148,7 @@ class FlutterCarplay {
   }
 
   void addListenerOnSiriSearch(
-    Function(String? mediaName, String? albumName, String? artistName)
-        onSiriSearch,
+    Function(String mediaName) onSiriSearch,
   ) {
     _onSiriSearch = onSiriSearch;
   }
