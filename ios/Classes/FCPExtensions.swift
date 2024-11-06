@@ -18,8 +18,17 @@ extension UIImage {
       return fromUrl(url: name)
     } else if (name.starts(with: "file://")) {
       return fromFile(path: name)
+    } else if (name.starts(with: "symbol://")) {
+      return fromSymbol(name: name)
     }
     return fromFlutterAsset(name: name)
+  }
+
+  @available(iOS 14.0, *)
+  func fromSymbol(name: String) -> UIImage {
+    let cleanName = name.replacingOccurrences(of: "symbol://", with: "")
+    let image = UIImage(systemName: cleanName)
+    return image ?? UIImage(systemName: "questionmark")!
   }
     
   @available(iOS 14.0, *)
