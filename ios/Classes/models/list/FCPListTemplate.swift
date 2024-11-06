@@ -64,7 +64,7 @@ class FCPListTemplate {
         listTemplate.emptyViewTitleVariants = emptyViewTitleVariants
         listTemplate.emptyViewSubtitleVariants = emptyViewSubtitleVariants
         listTemplate.showsTabBadge = showsTabBadge
-        listTemplate.tabImage = UIImage().fromFlutterAsset(name: systemIcon)
+        listTemplate.tabImage = UIImage().fromCorrectSource(name: systemIcon)
         if templateType == FCPListTemplateTypes.DEFAULT {
             listTemplate.backButton = backButton
         }
