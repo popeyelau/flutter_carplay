@@ -62,9 +62,8 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
       FlutterCarPlaySceneDelegate.interfaceController?.setRootTemplate(rootTemplate!, animated: SwiftFlutterCarplayPlugin.animated, completion: nil)
     } else {
       //FIXME:
-      let ooops = CPListTemplate(title: "", sections: [])
-      ooops.emptyViewTitleVariants = ["正在加载中..."]
-      ooops.emptyViewTitleVariants = ["请耐心等待"]
+      let ooops = CPListTemplate(title: "Ooops!", sections: [])
+      ooops.emptyViewTitleVariants = ["出错了，请打开手机端 雀乐APP"]
       FlutterCarPlaySceneDelegate.interfaceController?.setRootTemplate(ooops, animated: SwiftFlutterCarplayPlugin.animated, completion: nil)
     }
   }
