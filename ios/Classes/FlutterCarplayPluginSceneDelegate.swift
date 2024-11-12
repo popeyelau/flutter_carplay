@@ -54,6 +54,7 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
   func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene,
                                 didConnect interfaceController: CPInterfaceController) {
     FlutterCarPlaySceneDelegate.interfaceController = interfaceController
+    interfaceController.delegate = self
     
     SwiftFlutterCarplayPlugin.onCarplayConnectionChange(status: FCPConnectionTypes.connected)
     let rootTemplate = SwiftFlutterCarplayPlugin.rootTemplate
@@ -62,8 +63,8 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
       FlutterCarPlaySceneDelegate.interfaceController?.setRootTemplate(rootTemplate!, animated: SwiftFlutterCarplayPlugin.animated, completion: nil)
     } else {
       //FIXME:
-      let ooops = CPListTemplate(title: "Ooops!", sections: [])
-      ooops.emptyViewTitleVariants = ["出错了，请打开手机端 雀乐APP"]
+      let ooops = CPListTemplate(title: "雀乐", sections: [])
+      ooops.emptyViewTitleVariants = ["正在加载中..."]
       FlutterCarPlaySceneDelegate.interfaceController?.setRootTemplate(ooops, animated: SwiftFlutterCarplayPlugin.animated, completion: nil)
     }
   }
@@ -82,3 +83,14 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
     //FlutterCarPlaySceneDelegate.interfaceController = nil
   }
 }
+
+extension FlutterCarPlaySceneDelegate: CPInterfaceControllerDelegate {
+    func templateWillAppear(_ aTemplate: CPTemplate, animated: Bool) {
+        if let temeplate = aTemplate as? CPListTemplate {
+            FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
+                                             data: ["action": temeplate.title ?? ""])
+        }
+    }
+}
+
+
