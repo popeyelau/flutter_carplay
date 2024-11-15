@@ -6,6 +6,8 @@
 //
 
 import CarPlay
+import Kingfisher
+
 
 @available(iOS 14.0, *)
 class FCPListItem {
@@ -99,18 +101,32 @@ class FCPListItem {
         complete()
       }
     }
-    if image != nil {
-      UIGraphicsBeginImageContext(CGSize.init(width: 100, height: 100))
-      let emptyImage = UIGraphicsGetImageFromCurrentImageContext()
-      UIGraphicsEndImageContext()
-      listItem.setImage(emptyImage)
-      DispatchQueue.global(qos: .background).async {
-        let uiImage = UIImage().fromCorrectSource(name: self.image!)
-        DispatchQueue.main.async {
-            listItem.setImage(uiImage)
+    
+    if let image = image {
+        UIGraphicsBeginImageContext(CGSize(width: 100, height: 100))
+        let emptyImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        listItem.setImage(emptyImage)
+
+        if image.starts(with: "http") {
+            KingfisherManager.shared.retrieveImage(with: KF.ImageResource(downloadURL: URL(string: image)!), options: nil, progressBlock: nil, completionHandler: { result in
+                switch result {
+                    case .success(let value):
+                        listItem.setImage(value.image)
+                    case .failure:
+                        listItem.setImage(UIImage(systemName: "questionmark")!)
+                }
+            })
+        } else {
+            DispatchQueue.global(qos: .background).async {
+                let uiImage = UIImage().fromCorrectSource(name: image)
+                DispatchQueue.main.async {
+                    listItem.setImage(uiImage)
+                }
+            }
         }
-      }
     }
+    
     if playbackProgress != nil {
       listItem.playbackProgress = playbackProgress!
     }
