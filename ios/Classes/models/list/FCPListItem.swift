@@ -44,8 +44,8 @@ class FCPListItem {
       }
       
       var listItem: CPListImageRowItem
-      if #available(iOS 17.4, *) {
-          listItem = CPListImageRowItem(text: text, images: uiImages!, imageTitles: titles!)
+      if let titles = titles, #available(iOS 17.4, *) {
+          listItem = CPListImageRowItem(text: text, images: uiImages!, imageTitles: titles)
       } else {
           listItem = CPListImageRowItem(text: text, images: uiImages!)
       }
