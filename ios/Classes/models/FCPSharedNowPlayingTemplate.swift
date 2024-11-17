@@ -44,14 +44,21 @@ class FCPSharedNowPlayingTemplate {
             }
         })
 
-        let moreButton = CPNowPlayingMoreButton(handler: { _ in
+        let journalButton = CPNowPlayingImageButton(image: UIImage(systemName: "ellipsis.circle")!,handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "more"])
             }
         })
+        
+        let artistButton = CPNowPlayingImageButton(image: UIImage(systemName: "music.microphone.circle")!,handler: { _ in
+            DispatchQueue.main.async {
+                FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
+                                                 data: ["action": "artist"])
+            }
+        })
 
-        shared.updateNowPlayingButtons([favoriteButton, shuffleButton, moreButton])
+        shared.updateNowPlayingButtons([favoriteButton, shuffleButton, artistButton, journalButton])
     }
 }
 
