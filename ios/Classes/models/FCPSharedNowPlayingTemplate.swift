@@ -21,6 +21,8 @@ class FCPSharedNowPlayingTemplate {
 
     var get: CPNowPlayingTemplate {
         let shared = CPNowPlayingTemplate.shared
+        shared.isUpNextButtonEnabled = true
+        shared.upNextTitle = "播放队列"
         FCPSharedNowPlayingTemplate.updateNowPlayingButtons(isFavorited: self.isFavorited, isShuffle: self.isShuffle)
         return shared
     }

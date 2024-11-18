@@ -183,7 +183,9 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
             let animated = args["animated"] as? Bool ?? false
             let template = FCPSharedNowPlayingTemplate(obj: args)
             SwiftFlutterCarplayPlugin.templateStack.append(template)
-            FlutterCarPlaySceneDelegate.push(template: template.get, animated: animated)
+            let nowPlaying = template.get
+            nowPlaying.add(self)
+            FlutterCarPlaySceneDelegate.push(template: nowPlaying, animated: animated)
             result(true)
 
         case FCPChannelTypes.updateNowPlaying:
@@ -475,5 +477,15 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
         FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSearchViaSiri,
                                          data: ["mediaName": mediaName])
 
+    }
+}
+
+
+extension SwiftFlutterCarplayPlugin: CPNowPlayingTemplateObserver {
+    public func nowPlayingTemplateUpNextButtonTapped(_ nowPlayingTemplate: CPNowPlayingTemplate) {
+        DispatchQueue.main.async {
+            FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
+                                             data: ["action": "queue"])
+        }
     }
 }
