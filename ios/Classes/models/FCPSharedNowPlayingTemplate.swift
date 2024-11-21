@@ -53,7 +53,7 @@ class FCPSharedNowPlayingTemplate {
             }
         })
         
-        let artistButton = CPNowPlayingImageButton(image: UIImage(systemName: "music.microphone.circle")!,handler: { _ in
+        let artistButton = CPNowPlayingImageButton(image: UIImage(systemName: "music.note.list")!,handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "artist"])
