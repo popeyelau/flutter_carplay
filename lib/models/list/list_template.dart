@@ -20,14 +20,14 @@ class CPListTemplate {
   /// least- preferred. When there are no items in the list, the template displays
   /// an empty view with a title and a subtitle in place of the items. If you update
   /// the list and provide items, the template automatically removes the empty view.
-  List<String>? emptyViewTitleVariants;
+  List<String> emptyViewTitleVariants;
 
   /// An optional array of subtitle variants for the template’s empty view.
   /// Provide the strings as localized displayable content and order from most- to
   /// least- preferred. When there are no items in the list, the template displays
   /// an empty view with a title and a subtitle in place of the items. If you update
   /// the list and provide items, the template automatically removes the empty view.
-  List<String>? emptyViewSubtitleVariants;
+  List<String> emptyViewSubtitleVariants;
 
   /// An indicator you use to call attention to the tab. When it is true, a small
   /// red indicator will be displayed on the tab in order to show user that it requires
@@ -60,6 +60,12 @@ class CPListTemplate {
   /// Back button object
   final CPBarButton? backButton;
 
+  /// An array of bar buttons to be displayed on the leading side of the navigation bar.
+  List<CPBarButton> leadingNavigationBarButtons;
+
+  /// An array of bar buttons to be displayed on the trailing side of the navigation bar.
+  List<CPBarButton> trailingNavigationBarButtons;
+
   /// Creates [CPListTemplate] to display a list of items, grouped into one or more sections.
   /// Each section contains an array of list items — objects that is [CPListItem]
   ///
@@ -67,8 +73,10 @@ class CPListTemplate {
   CPListTemplate({
     this.title,
     required this.sections,
-    this.emptyViewTitleVariants,
-    this.emptyViewSubtitleVariants,
+    this.emptyViewTitleVariants = const [],
+    this.emptyViewSubtitleVariants = const [],
+    this.leadingNavigationBarButtons = const [],
+    this.trailingNavigationBarButtons = const [],
     this.showsTabBadge = false,
     this.showSiri = false,
     required this.systemIcon,
@@ -81,6 +89,10 @@ class CPListTemplate {
         "sections": sections.map((e) => e.toJson()).toList(),
         "emptyViewTitleVariants": emptyViewTitleVariants,
         "emptyViewSubtitleVariants": emptyViewSubtitleVariants,
+        'leadingNavigationBarButtons':
+            leadingNavigationBarButtons.map((e) => e.toJson()).toList(),
+        'trailingNavigationBarButtons':
+            trailingNavigationBarButtons.map((e) => e.toJson()).toList(),
         "showsTabBadge": showsTabBadge,
         "showSiri": showSiri,
         "systemIcon": systemIcon,
@@ -91,6 +103,8 @@ class CPListTemplate {
     required List<CPListSection> sections,
     List<String>? emptyViewTitleVariants,
     List<String>? emptyViewSubtitleVariants,
+    List<CPBarButton>? leadingNavigationBarButtons,
+    List<CPBarButton>? trailingNavigationBarButtons,
   }) {
     this.sections = sections;
     if (emptyViewTitleVariants != null) {
@@ -99,6 +113,13 @@ class CPListTemplate {
     if (emptyViewSubtitleVariants != null) {
       this.emptyViewSubtitleVariants = emptyViewSubtitleVariants;
     }
+    if (leadingNavigationBarButtons != null) {
+      this.leadingNavigationBarButtons = leadingNavigationBarButtons;
+    }
+    if (trailingNavigationBarButtons != null) {
+      this.trailingNavigationBarButtons = trailingNavigationBarButtons;
+    }
+
     FlutterCarPlayController.updateCPListTemplate(this);
   }
 

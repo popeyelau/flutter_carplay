@@ -73,8 +73,8 @@ class FlutterCarplay {
               .processFCPAlertActionPressed(event["data"]["elementId"]);
           break;
         case FCPChannelTypes.onPresentStateChanged:
-          _carPlayController
-              .processFCPAlertTemplateCompleted(event["data"]["completed"]);
+          _carPlayController.processFCPAlertTemplateCompleted(
+              completed: event["data"]["completed"]);
           break;
         case FCPChannelTypes.onGridButtonPressed:
           _carPlayController
@@ -170,32 +170,34 @@ class FlutterCarplay {
   /// this flag when there isn’t an existing navigation hierarchy to replace.
   ///
   /// [!] CarPlay cannot have more than 5 templates on one screen.
-  static void setRootTemplate({
+  static Future<void> setRootTemplate({
     required dynamic rootTemplate,
     bool animated = true,
-  }) {
+  }) async {
     if (rootTemplate.runtimeType == CPTabBarTemplate ||
         rootTemplate.runtimeType == CPGridTemplate ||
         rootTemplate.runtimeType == CPListTemplate ||
         rootTemplate.runtimeType == CPInformationTemplate ||
         rootTemplate.runtimeType == CPPointOfInterestTemplate) {
-      _carPlayController.methodChannel
-          .invokeMethod('setRootTemplate', <String, dynamic>{
+      final isSuccess = await _carPlayController.methodChannel
+          .invokeMethod(FCPChannelTypes.setRootTemplate.name, <String, dynamic>{
         'rootTemplate': rootTemplate.toJson(),
         'animated': animated,
         'runtimeType': "F${rootTemplate.runtimeType}",
-      }).then((value) {
-        if (value) {
-          FlutterCarPlayController.currentRootTemplate = rootTemplate;
-          _carPlayController.addTemplateToHistory(rootTemplate);
-        }
       });
+
+      if (isSuccess) {
+        FlutterCarPlayController.currentRootTemplate = rootTemplate;
+        _carPlayController.addTemplateToHistory(rootTemplate);
+      }
     }
   }
 
   /// It will set the current root template again.
-  void forceUpdateRootTemplate() {
-    _carPlayController.methodChannel.invokeMethod('forceUpdateRootTemplate');
+  Future<void> forceUpdateRootTemplate() async {
+    await _carPlayController.methodChannel.invokeMethod(
+      FCPChannelTypes.forceUpdateRootTemplate.name,
+    );
   }
 
   /// Getter for current root template.
@@ -210,21 +212,19 @@ class FlutterCarplay {
   /// - If animated is true, CarPlay animates the presentation of the template.
   ///
   /// [!] CarPlay can only present one modal template at a time.
-  static void showAlert({
+  static Future<void> showAlert({
     required CPAlertTemplate template,
     bool animated = true,
-  }) {
-    _carPlayController.methodChannel.invokeMethod(
-        CPEnumUtils.stringFromEnum(FCPChannelTypes.setAlert.toString()),
-        <String, dynamic>{
-          'rootTemplate': template.toJson(),
-          'animated': animated,
-          'onPresent': template.onPresent != null ? true : false,
-        }).then((value) {
-      if (value) {
-        FlutterCarPlayController.currentPresentTemplate = template;
-      }
+  }) async {
+    final isSuccess = await _carPlayController.methodChannel
+        .invokeMethod(FCPChannelTypes.setAlert.name, <String, dynamic>{
+      'rootTemplate': template.toJson(),
+      'animated': animated,
+      'onPresent': template.onPresent != null ? true : false,
     });
+    if (isSuccess) {
+      FlutterCarPlayController.currentPresentTemplate = template;
+    }
   }
 
   /// It will present [CPActionSheetTemplate] modally.
@@ -233,20 +233,18 @@ class FlutterCarplay {
   /// - If animated is true, CarPlay animates the presentation of the template.
   ///
   /// [!] CarPlay can only present one modal template at a time.
-  static void showActionSheet({
+  static Future<void> showActionSheet({
     required CPActionSheetTemplate template,
     bool animated = true,
-  }) {
-    _carPlayController.methodChannel.invokeMethod(
-        CPEnumUtils.stringFromEnum(FCPChannelTypes.setActionSheet.toString()),
-        <String, dynamic>{
-          'rootTemplate': template.toJson(),
-          'animated': animated,
-        }).then((value) {
-      if (value) {
-        FlutterCarPlayController.currentPresentTemplate = template;
-      }
+  }) async {
+    final isSuccess = await _carPlayController.methodChannel
+        .invokeMethod(FCPChannelTypes.setActionSheet.name, <String, dynamic>{
+      'rootTemplate': template.toJson(),
+      'animated': animated,
     });
+    if (isSuccess) {
+      FlutterCarPlayController.currentPresentTemplate = template;
+    }
   }
 
   /// Removes the top-most template from the navigation hierarchy.
@@ -254,36 +252,72 @@ class FlutterCarplay {
   /// - If animated is true, CarPlay animates the transition between templates.
   /// - count represents how many times this function will occur.
   static Future<bool> pop({bool animated = true, int count = 1}) async {
-    FlutterCarPlayController.templateHistory.removeLast();
-    return await _carPlayController.reactToNativeModule(
+    final isSuccess = await _carPlayController.reactToNativeModule(
       FCPChannelTypes.popTemplate,
       <String, dynamic>{
-        "count": count,
-        "animated": animated,
+        'count': count,
+        'animated': animated,
       },
     );
+
+    if (isSuccess) {
+      final templateHistory = FlutterCarPlayController.templateHistory;
+      for (final _ in Iterable<int>.generate(count)) {
+        if (templateHistory.isNotEmpty) {
+          templateHistory.removeLast();
+        } else {
+          break;
+        }
+      }
+    }
+    return isSuccess;
   }
 
   /// Removes all of the templates from the navigation hierarchy except the root template.
   /// If animated is true, CarPlay animates the presentation of the template.
   static Future<bool> popToRoot({bool animated = true}) async {
-    FlutterCarPlayController.templateHistory = [
-      FlutterCarPlayController.currentRootTemplate
-    ];
-    return await _carPlayController.reactToNativeModule(
+    await FlutterCarplay.popModal(forcePop: true);
+
+    if (FlutterCarPlayController.templateHistory.length <= 1) return false;
+
+    final isSuccess = await _carPlayController.reactToNativeModule(
       FCPChannelTypes.popToRootTemplate,
       animated,
     );
+
+    if (isSuccess) {
+      if (FlutterCarPlayController.currentRootTemplate != null) {
+        FlutterCarPlayController.templateHistory = [
+          FlutterCarPlayController.currentRootTemplate,
+        ];
+      }
+    }
+
+    return isSuccess;
   }
 
   /// Removes a modal template. Since [CPAlertTemplate] and [CPActionSheetTemplate] are both
   /// modals, they can be removed. If animated is true, CarPlay animates the transition between templates.
-  static Future<bool> popModal({bool animated = true}) async {
-    FlutterCarPlayController.currentPresentTemplate = null;
-    return await _carPlayController.reactToNativeModule(
+  static Future<bool> popModal({
+    bool animated = true,
+    bool forcePop = false,
+  }) async {
+    final cpTemplate = FlutterCarPlayController.currentPresentTemplate;
+
+    if (cpTemplate == null) return false;
+
+    // Ignore pop when [forcePop] and [isDismissible] both are false
+    if (!forcePop && !cpTemplate.isDismissible) {
+      return false;
+    }
+
+    final isSuccess = await _carPlayController.reactToNativeModule(
       FCPChannelTypes.closePresent,
       animated,
     );
+
+    if (isSuccess) FlutterCarPlayController.currentPresentTemplate = null;
+    return isSuccess;
   }
 
   /// Adds a template to the navigation hierarchy and displays it.
@@ -300,16 +334,16 @@ class FlutterCarplay {
         template.runtimeType == CPListTemplate ||
         template.runtimeType == CPInformationTemplate ||
         template.runtimeType == CPPointOfInterestTemplate) {
-      bool isCompleted = await _carPlayController
+      bool isSuccess = await _carPlayController
           .reactToNativeModule(FCPChannelTypes.pushTemplate, <String, dynamic>{
         "template": template.toJson(),
         "animated": animated,
         "runtimeType": "F${template.runtimeType}",
       });
-      if (isCompleted) {
+      if (isSuccess) {
         _carPlayController.addTemplateToHistory(template);
       }
-      return isCompleted;
+      return isSuccess;
     } else {
       throw TypeError();
     }
@@ -323,25 +357,25 @@ class FlutterCarplay {
     bool isShuffle = false,
     bool animated = true,
   }) async {
-    bool isCompleted = await _carPlayController
+    bool isSuccess = await _carPlayController
         .reactToNativeModule(FCPChannelTypes.showNowPlaying, <String, dynamic>{
       "animated": animated,
       "isFavorited": isFavorited,
       "isShuffle": isShuffle,
     });
-    return isCompleted;
+    return isSuccess;
   }
 
   static Future<bool> updateNowPlaying({
     bool isFavorited = false,
     bool isShuffle = false,
   }) async {
-    bool isCompleted = await _carPlayController.reactToNativeModule(
+    bool isSuccess = await _carPlayController.reactToNativeModule(
         FCPChannelTypes.updateNowPlaying, <String, dynamic>{
       "isFavorited": isFavorited,
       "isShuffle": isShuffle,
     });
-    return isCompleted;
+    return isSuccess;
   }
 
   /// Updates the TabBar template it's children

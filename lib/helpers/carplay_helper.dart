@@ -5,31 +5,24 @@ class FlutterCarplayHelper {
     required List<dynamic> templates,
     required String elementId,
   }) {
-    CPListItem? listItem;
-    l1:
-    for (var t in templates) {
-      List<CPListTemplate> listTemplates = [];
-      if (t.runtimeType.toString() == (CPTabBarTemplate).toString()) {
-        for (var template in t.templates) {
-          listTemplates.add(template);
-        }
-      } else if (t.runtimeType.toString() == (CPListTemplate).toString()) {
-        listTemplates.add(t);
+    for (final template in templates) {
+      final listTemplates = <CPListTemplate>[];
+      if (template is CPTabBarTemplate) {
+        listTemplates.addAll(template.templates);
+      } else if (template is CPListTemplate) {
+        listTemplates.add(template);
       }
       if (listTemplates.isNotEmpty) {
-        for (var list in listTemplates) {
-          for (var section in list.sections) {
-            for (var item in section.items) {
-              if (item.uniqueId == elementId) {
-                listItem = item;
-                break l1;
-              }
+        for (final list in listTemplates) {
+          for (final section in list.sections) {
+            for (final item in section.items) {
+              if (item.uniqueId == elementId) return item;
             }
           }
         }
       }
     }
-    return listItem;
+    return null;
   }
 
   String makeFCPChannelId({String? event = ""}) =>

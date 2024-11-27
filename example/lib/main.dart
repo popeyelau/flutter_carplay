@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_carplay/flutter_carplay.dart';
+import 'package:flutter_carplay/models/list/list_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,13 +31,12 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Item 1",
           detailText: "Detail Text",
-          onPress: (complete, self) {
-            self.setDetailText("You can change the detail text.. 🚀");
-            self.setAccessoryType(CPListItemAccessoryTypes.cloud);
-            Future.delayed(const Duration(seconds: 1), () {
-              self.setDetailText("Customizable Detail Text");
-              complete();
-            });
+          onPressed: (complete, self) {
+            self.update(
+              detailText: "You can change the detail text.. 🚀",
+              accessoryType: CPListItemAccessoryTypes.cloud,
+            );
+            complete();
           },
           image: 'images/logo_flutter_1080px_clr.png',
         ),
@@ -46,10 +46,10 @@ class _MyAppState extends State<MyApp> {
           isPlaying: false,
           playbackProgress: 0,
           image: 'images/logo_flutter_1080px_clr.png',
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             for (var i = 1; i <= 100; i++) {
               sleep(const Duration(milliseconds: 10));
-              self.setPlaybackProgress(i / 100);
+              self.update(playbackProgress: i / 100);
               if (i == 100) {
                 complete();
               }
@@ -64,12 +64,12 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Item 3",
           detailText: "Detail Text",
-          onPress: (complete, self) {
-            self.updateTexts(
+          onPressed: (complete, self) {
+            self.update(
               text: "You can also change the title",
               detailText: "and detail text while loading",
+              accessoryType: CPListItemAccessoryTypes.none,
             );
-            self.setAccessoryType(CPListItemAccessoryTypes.none);
             Future.delayed(const Duration(seconds: 1), () {
               complete();
             });
@@ -88,7 +88,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Alert",
           detailText: "Action template that the user can perform on an alert",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             showAlert();
             complete();
           },
@@ -96,7 +96,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Grid Template",
           detailText: "A template that displays and manages a grid of items",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             openGridTemplate();
             complete();
           },
@@ -104,7 +104,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Action Sheet",
           detailText: "A template that displays a modal action sheet",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             showActionSheet();
             complete();
           },
@@ -112,7 +112,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "List Template",
           detailText: "Displays and manages a list of items",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             openListTemplate();
             complete();
           },
@@ -120,7 +120,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Information Template",
           detailText: "Displays a list of items and up to three actions",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             openInformationTemplate();
             complete();
           },
@@ -128,7 +128,7 @@ class _MyAppState extends State<MyApp> {
         CPListItem(
           text: "Point Of Interest Template",
           detailText: "Displays a Map with points of interest.",
-          onPress: (complete, self) {
+          onPressed: (complete, self) {
             openPoiTemplate();
             complete();
           },
@@ -336,7 +336,7 @@ class _MyAppState extends State<MyApp> {
         backButton: CPBarButton(
           title: "Back",
           style: CPBarButtonStyles.none,
-          onPress: () {
+          onPressed: () {
             FlutterCarplay.pop(animated: true);
           },
         ),
@@ -353,12 +353,12 @@ class _MyAppState extends State<MyApp> {
             actions: [
           CPTextButton(
               title: "Button Title 1",
-              onPress: () {
+              onPressed: () {
                 print("Button 1");
               }),
           CPTextButton(
               title: "Button Title 2",
-              onPress: () {
+              onPressed: () {
                 print("Button 2");
               }),
         ],
@@ -383,12 +383,12 @@ class _MyAppState extends State<MyApp> {
             image: "images/logo_flutter_1080px_clr.png",
             primaryButton: CPTextButton(
                 title: "Primary",
-                onPress: () {
+                onPressed: () {
                   print("Primary button pressed");
                 }),
             secondaryButton: CPTextButton(
                 title: "Secondary",
-                onPress: () {
+                onPressed: () {
                   print("Secondary button pressed");
                 }),
           ),

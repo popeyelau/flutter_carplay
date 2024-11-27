@@ -343,7 +343,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
                                 emptyViewSubtitleVariants: args["emptyViewSubtitleVariants"] as? [String])
         }
     }
-    
+
      public static func onSiriSearch(mediaName: String) {
         FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSiriSearch,
                                          data: ["mediaName": mediaName])
@@ -354,7 +354,7 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
 extension SwiftFlutterCarplayPlugin: CPNowPlayingTemplateObserver {
     public func nowPlayingTemplateUpNextButtonTapped(_ nowPlayingTemplate: CPNowPlayingTemplate) {
         DispatchQueue.main.async {
-            FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
+            FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onCustomAction,
                                              data: ["action": "queue"])
         }
     }

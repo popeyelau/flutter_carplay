@@ -15,13 +15,13 @@ class CPBarButton {
   final CPBarButtonStyles style;
 
   /// Fired when the user taps a bar button.
-  final Function() onPress;
+  final Function() onPressed;
 
   /// Creates [CPBarButton] with a title, style and handler.
   CPBarButton({
     required this.title,
     this.style = CPBarButtonStyles.rounded,
-    required this.onPress,
+    required this.onPressed,
   });
 
   Map<String, dynamic> toJson() => {
