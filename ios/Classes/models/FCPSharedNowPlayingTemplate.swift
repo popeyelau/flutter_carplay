@@ -30,8 +30,17 @@ class FCPSharedNowPlayingTemplate {
 
     static func updateNowPlayingButtons(isFavorited: Bool, isShuffle: Bool) {
         let shared = CPNowPlayingTemplate.shared
+        var carTraitCollection: UITraitCollection?
+        
+        for screen in UIScreen.screens {
+            if screen.traitCollection.userInterfaceIdiom == .carPlay {
+                carTraitCollection = screen.traitCollection
+            }
+          }
+        
+        
         let favoriteSystemName = isFavorited ? "heart.fill" : "heart"
-        let favoriteButton = CPNowPlayingImageButton(image: UIImage(systemName: favoriteSystemName)!, handler: { _ in
+        let favoriteButton = CPNowPlayingImageButton(image: UIImage(systemName: favoriteSystemName, compatibleWith: carTraitCollection)!, handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "favorite"])
@@ -39,21 +48,22 @@ class FCPSharedNowPlayingTemplate {
         })
 
         let shuffleSystemName = isShuffle ? "shuffle" : "repeat"
-        let shuffleButton = CPNowPlayingImageButton(image: UIImage(systemName: shuffleSystemName)!,handler: { _ in
+        let shuffleButton = CPNowPlayingImageButton(image: UIImage(systemName: shuffleSystemName, compatibleWith: carTraitCollection)!,handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "shuffle"])
             }
         })
 
-        let journalButton = CPNowPlayingImageButton(image: UIImage(systemName: "ellipsis.circle")!,handler: { _ in
+        let journalButton = CPNowPlayingImageButton(image: UIImage(systemName: "ellipsis.circle", compatibleWith: carTraitCollection)!,handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "more"])
             }
         })
         
-        let artistButton = CPNowPlayingImageButton(image: UIImage(systemName: "music.note.list")!,handler: { _ in
+       
+        let artistButton = CPNowPlayingImageButton(image: UIImage(systemName: "music.note.list", compatibleWith: carTraitCollection)!,handler: { _ in
             DispatchQueue.main.async {
                 FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onNowPlayingButtonPressed,
                                                  data: ["action": "artist"])
