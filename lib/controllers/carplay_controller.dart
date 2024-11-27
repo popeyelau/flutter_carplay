@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_carplay/flutter_carplay.dart';
 import 'package:flutter_carplay/helpers/carplay_helper.dart';
 import 'package:flutter_carplay/constants/private_constants.dart';
-import 'package:flutter_carplay/models/speaker/carplay_speaker.dart';
 
 /// [FlutterCarPlayController] is an root object in order to control and communication
 /// system with the Apple CarPlay and native functions.
@@ -46,8 +45,8 @@ class FlutterCarPlayController {
         l1:
         for (var h in templateHistory) {
           switch (h.runtimeType) {
-            case CPTabBarTemplate:
-              for (var t in (h as CPTabBarTemplate).templates) {
+            case CPTabBarTemplate tabBarTemplate:
+              for (var t in tabBarTemplate.templates) {
                 for (var s in t.sections) {
                   for (var i in s.items) {
                     if (i.uniqueId == updatedListItem.uniqueId) {
@@ -61,8 +60,8 @@ class FlutterCarPlayController {
                 }
               }
               break;
-            case CPListTemplate:
-              for (var s in (h as CPListTemplate).sections) {
+            case CPListTemplate listTemplate:
+              for (var s in listTemplate.sections) {
                 for (var i in s.items) {
                   if (i.uniqueId == updatedListItem.uniqueId) {
                     currentRootTemplate!
@@ -205,8 +204,8 @@ class FlutterCarPlayController {
         l1:
         for (var template in templateHistory) {
           switch (template) {
-            case CPTabBarTemplate:
-              for (var t in (template as CPTabBarTemplate).templates) {
+            case CPTabBarTemplate tabBarTemplate:
+              for (var t in tabBarTemplate.templates) {
                 if (t.uniqueId == elementId) {
                   template.templates[currentRootTemplate!.templates
                       .indexOf(t)] = updatedTemplate;
@@ -214,8 +213,8 @@ class FlutterCarPlayController {
                 }
               }
               break;
-            case CPListTemplate:
-              if ((template as CPListTemplate).uniqueId == elementId) {
+            case CPListTemplate listTemplate:
+              if (listTemplate.uniqueId == elementId) {
                 template = updatedTemplate;
                 break l1;
               }
@@ -224,20 +223,6 @@ class FlutterCarPlayController {
           }
         }
       }
-    });
-  }
-
-  /// Processes the FCPPointOfInterestTemplateCompletedChannel
-  ///
-  /// Parameters:
-  /// - elementId: The id of the [CPPointOfInterestTemplate]
-  void processFCPSpeakerOnComplete(String elementId) {
-    callbackObjects.removeWhere((e) {
-      if (e is CPSpeaker) {
-        e.onCompleted?.call();
-        return true;
-      }
-      return false;
     });
   }
 }

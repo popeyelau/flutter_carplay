@@ -240,130 +240,6 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
             FlutterCarPlaySceneDelegate.popToRootTemplate(animated: animated)
             self.objcPresentTemplate = nil
             result(true)
-
-
-
-        case FCPChannelTypes.setVoiceControl:
-            guard let args = call.arguments as? [String: Any],
-                              let animated = args["animated"] as? Bool,
-                              let rootTemplateArgs = args["rootTemplate"] as? [String: Any]
-                        else {
-                            result(false)
-                            return
-                        }
-
-                        if objcPresentTemplate != nil {
-                            objcPresentTemplate = nil
-                            FlutterCarPlaySceneDelegate.closePresent(animated: animated, completion: { _, _ in
-                                showVoiceTemplate()
-                            })
-                        } else {
-                            showVoiceTemplate()
-                        }
-
-                        func showVoiceTemplate() {
-                            let voiceControlTemplate = FCPVoiceControlTemplate(obj: rootTemplateArgs)
-                            objcPresentTemplate = voiceControlTemplate
-                            FlutterCarPlaySceneDelegate.presentTemplate(template: voiceControlTemplate.get, animated: animated, completion: { completed, _ in
-                                FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onPresentStateChanged,
-                                                                 data: ["completed": completed])
-                                result(completed)
-                            })
-                        }
-
-
-        case FCPChannelTypes.activateVoiceControlState:
-            guard objcPresentTemplate != nil else {
-                            result(FlutterError(code: "ERROR",
-                                                message: "To activate a voice control state, a voice control template must be presented to CarPlay Screen at first.",
-                                                details: nil))
-                            return
-                        }
-                        guard let args = call.arguments as? String else {
-                            result(false)
-                            return
-                        }
-
-                        if let voiceControlTemplate = objcPresentTemplate as? FCPVoiceControlTemplate {
-                            voiceControlTemplate.activateVoiceControlState(identifier: args)
-                            result(true)
-                        } else {
-                            result(false)
-                        }
-        case FCPChannelTypes.getActiveVoiceControlStateIdentifier:
-                guard objcPresentTemplate != nil else {
-                    result(FlutterError(code: "ERROR",
-                                        message: "To get the active voice control state identifier, a voice control template must be presented to CarPlay Screen at first.",
-                                        details: nil))
-                    return
-                }
-
-                if let voiceControlTemplate = objcPresentTemplate as? FCPVoiceControlTemplate {
-                    let identifier = voiceControlTemplate.getActiveVoiceControlStateIdentifier()
-                    result(identifier)
-                } else {
-                    result(nil)
-                }
-
-
-        case FCPChannelTypes.startVoiceControl:
-                   guard objcPresentTemplate != nil else {
-                       result(FlutterError(code: "ERROR",
-                                           message: "To start the voice control, a voice control template must be presented to CarPlay Screen at first.",
-                                           details: nil))
-                       return
-                   }
-                   if let voiceControlTemplate = objcPresentTemplate as? FCPVoiceControlTemplate {
-                       voiceControlTemplate.start()
-                       result(true)
-                   } else {
-                       result(false)
-                   }
-               case FCPChannelTypes.stopVoiceControl:
-                   guard objcPresentTemplate != nil else {
-                       result(FlutterError(code: "ERROR",
-                                           message: "To stop the voice control, a voice control template must be presented to CarPlay Screen at first.",
-                                           details: nil))
-                       return
-                   }
-                   if let voiceControlTemplate = objcPresentTemplate as? FCPVoiceControlTemplate {
-                       voiceControlTemplate.stop()
-                       result(true)
-                   } else {
-                       result(false)
-                   }
-               case FCPChannelTypes.speak:
-                   guard let args = call.arguments as? [String: Any],
-                         let text = args["text"] as? String,
-                         let language = args["language"] as? String,
-                         let elementId = args["_elementId"] as? String,
-                         let onCompleted = args["onCompleted"] as? Bool
-                   else {
-                       result(false)
-                       return
-                   }
-                   _ = FCPSpeaker.shared.setLanguage(locale: Locale(identifier: language))
-                   FCPSpeaker.shared.speak(text) {
-                       if onCompleted {
-                           FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSpeechCompleted,
-                                                            data: ["elementId": elementId])
-                       }
-                   }
-                   result(true)
-               case FCPChannelTypes.playAudio:
-                   guard let args = call.arguments as? [String: Any],
-                         let soundPath = args["soundPath"] as? String,
-                         let volume = args["volume"] as? NSNumber
-                   else {
-                       result(false)
-                       return
-                   }
-                   FCPSoundEffects.shared.prepare(sound: soundPath, volume: volume.floatValue)
-                   FCPSoundEffects.shared.play()
-                   result(true)
-
-
-
         case FCPChannelTypes.updateTabBarTemplates:
             guard let args = call.arguments as? [String: Any] else {
                 result(false)
@@ -391,11 +267,6 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
     static func onCarplayConnectionChange(status: String) {
         FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onCarplayConnectionChange,
                                          data: ["status": status])
-    }
-
-    static func sendSpeechRecognitionTranscriptChangeEvent(transcript: String) {
-        FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onVoiceControlTranscriptChanged,
-                                         data: ["transcript": transcript])
     }
 
     static func findItem(elementId: String, actionWhenFound: (_ item: FCPListItem) -> Void) {
@@ -473,10 +344,9 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
         }
     }
     
-     public static func searchViaSiri(mediaName: String) {
-        FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSearchViaSiri,
+     public static func onSiriSearch(mediaName: String) {
+        FCPStreamHandlerPlugin.sendEvent(type: FCPChannelTypes.onSiriSearch,
                                          data: ["mediaName": mediaName])
-
     }
 }
 

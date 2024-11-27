@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter_carplay/controllers/carplay_controller.dart';
 import 'package:flutter_carplay/flutter_carplay.dart';
 import 'package:flutter_carplay/constants/private_constants.dart';
-import 'package:flutter_carplay/models/speaker/carplay_speaker.dart';
-import 'package:flutter_carplay/models/voice_control/voice_control_template.dart';
 
 /// An object in order to integrate Apple CarPlay in navigation and
 /// manage all user interface elements appearing on your screens displayed on
@@ -23,29 +21,18 @@ class FlutterCarplay {
       FlutterCarPlayController();
 
   /// CarPlay main bridge as a listener from CarPlay and native side.
-  late final StreamSubscription<dynamic>? _eventBroadcast;
+  late final StreamSubscription<dynamic> _eventBroadcast;
 
   /// Current CarPlay and mobile app connection status.
-  static String _connectionStatus =
-      CPEnumUtils.stringFromEnum(CPConnectionStatusTypes.unknown.toString());
+  static CPConnectionStatusTypes _connectionStatus =
+      CPConnectionStatusTypes.unknown;
 
   /// A listener function, which will be triggered when CarPlay connection changes
   /// and will be transmitted to the main code, allowing the user to access
   /// the current connection status.
   Function(CPConnectionStatusTypes status)? _onCarplayConnectionChange;
   Function(String mediaName)? _onSiriSearch;
-  Function(String action)? _onNowPlayingButtonAction;
-
-  /// A listener function that will be triggered each time user's voice is recognized
-  /// and transcripted by CarPlay voice control, allows users to access the speech
-  /// recognition transcript.
-  static Function(String transcript)? _onSpeechRecognitionTranscriptChange;
-
-  /// A listener function that will be triggered when the voice control is cancelled.
-  static Function()? _onCancelVoiceControl;
-
-  /// A listener function that will be triggered when an information template is popped.
-  static Function()? _onInformationTemplatePopped;
+  Function(String action)? _onCustomAction;
 
   /// Creates an [FlutterCarplay] and starts the connection.
   FlutterCarplay() {
@@ -63,18 +50,13 @@ class FlutterCarplay {
             CPConnectionStatusTypes.values,
             event["data"]["status"],
           );
-          _connectionStatus =
-              CPEnumUtils.stringFromEnum(connectionStatus.toString());
-          if (_onCarplayConnectionChange != null) {
-            _onCarplayConnectionChange!(connectionStatus);
-          }
+          _connectionStatus = connectionStatus;
+          _onCarplayConnectionChange?.call(connectionStatus);
           break;
-        case FCPChannelTypes.onSearchViaSiri:
-          if (_onSiriSearch != null) {
-            _onSiriSearch!(
-              event["data"]["mediaName"],
-            );
-          }
+        case FCPChannelTypes.onSiriSearch:
+          _onSiriSearch?.call(
+            event["data"]["mediaName"],
+          );
           break;
         case FCPChannelTypes.onFCPListItemSelected:
           _carPlayController
@@ -86,7 +68,6 @@ class FlutterCarplay {
             event["data"]["index"],
           );
           break;
-
         case FCPChannelTypes.onFCPAlertActionPressed:
           _carPlayController
               .processFCPAlertActionPressed(event["data"]["elementId"]);
@@ -99,9 +80,9 @@ class FlutterCarplay {
           _carPlayController
               .processFCPGridButtonPressed(event["data"]["elementId"]);
           break;
-        case FCPChannelTypes.onNowPlayingButtonPressed:
+        case FCPChannelTypes.onCustomAction:
           final action = event["data"]["action"];
-          _onNowPlayingButtonAction?.call(action);
+          _onCustomAction?.call(action);
           break;
         case FCPChannelTypes.onBarButtonPressed:
           _carPlayController
@@ -123,17 +104,17 @@ class FlutterCarplay {
   ///
   /// [!] It is not recommended to use this function if you do not know what you are doing.
   void closeConnection() {
-    _eventBroadcast!.cancel();
+    _eventBroadcast.cancel();
   }
 
   /// A function that will resume the paused all event listeners from CarPlay.
   void resumeConnection() {
-    _eventBroadcast!.resume();
+    _eventBroadcast.resume();
   }
 
   /// A function that will pause the all active event listeners from CarPlay.
   void pauseConnection() {
-    _eventBroadcast!.pause();
+    _eventBroadcast.pause();
   }
 
   /// Callback function will be fired when CarPlay connection status is changed.
@@ -163,18 +144,18 @@ class FlutterCarplay {
     _onCarplayConnectionChange = null;
   }
 
-  void addListenerOnNowPlayingButtonAction(
-    Function(String action) onNowPlayingButtonAction,
+  void addListenerOnCustomAction(
+    Function(String action) onCustomAction,
   ) {
-    _onNowPlayingButtonAction = onNowPlayingButtonAction;
+    _onCustomAction = onCustomAction;
   }
 
-  void removeListenerOnNowPlayingButtonAction() {
-    _onNowPlayingButtonAction = null;
+  void removeListenerOnCustomAction() {
+    _onCustomAction = null;
   }
 
   /// Current CarPlay connection status. It will return one of [CPConnectionStatusTypes] as String.
-  static String get connectionStatus {
+  static CPConnectionStatusTypes get connectionStatus {
     return _connectionStatus;
   }
 
@@ -202,7 +183,7 @@ class FlutterCarplay {
           .invokeMethod('setRootTemplate', <String, dynamic>{
         'rootTemplate': rootTemplate.toJson(),
         'animated': animated,
-        'runtimeType': "F" + rootTemplate.runtimeType.toString(),
+        'runtimeType': "F${rootTemplate.runtimeType}",
       }).then((value) {
         if (value) {
           FlutterCarPlayController.currentRootTemplate = rootTemplate;
@@ -323,7 +304,7 @@ class FlutterCarplay {
           .reactToNativeModule(FCPChannelTypes.pushTemplate, <String, dynamic>{
         "template": template.toJson(),
         "animated": animated,
-        "runtimeType": "F" + template.runtimeType.toString(),
+        "runtimeType": "F${template.runtimeType}",
       });
       if (isCompleted) {
         _carPlayController.addTemplateToHistory(template);
@@ -381,122 +362,5 @@ class FlutterCarplay {
           .updateTemplates(newTemplates: newTemplates);
     }
     return isCompleted;
-  }
-
-  /// It will present [CPVoiceControlTemplate] modally.
-  ///
-  /// - template is to present modally.
-  /// - If animated is true, CarPlay animates the presentation of the template.
-  ///
-  /// [!] CarPlay can only present one modal template at a time.
-  static Future<void> showVoiceControl({
-    required CPVoiceControlTemplate template,
-    bool animated = true,
-  }) async {
-    final isSuccess = await _carPlayController.methodChannel.invokeMethod(
-      FCPChannelTypes.setVoiceControl.name,
-      <String, dynamic>{
-        'rootTemplate': template.toJson(),
-        'animated': animated,
-      },
-    );
-
-    if (isSuccess) FlutterCarPlayController.currentPresentTemplate = template;
-  }
-
-  /// Adds the specified [CPSpeaker] utterance to the queue of the speech synthesizer in CarPlay.
-  static void speak(CPSpeaker speakerController) {
-    if (speakerController.onCompleted != null) {
-      FlutterCarPlayController.callbackObjects.add(speakerController);
-    }
-    _carPlayController.methodChannel
-        .invokeMethod(
-      FCPChannelTypes.speak.name,
-      speakerController.toJson(),
-    )
-        .then((value) {
-      if (value == false && speakerController.onCompleted != null) {
-        FlutterCarPlayController.callbackObjects
-            .removeWhere((e) => e.uniqueId == speakerController.uniqueId);
-      }
-    });
-  }
-
-  /// Changes the [CPVoiceControlTemplate]'s state to the one matching the specified
-  /// identifier in [CPVoiceControlState].
-  ///
-  /// - identifier is a corresponding to one of the voiceControlStates associated with [CPVoiceControlTemplate].
-  ///
-  /// **[!] The [CPVoiceControlTemplate] applies a rate limit for voice control states, ignoring state changes
-  /// occurring too rapidly or frequently in a short period of time.**
-  ///
-  /// If this command is called before a voice control template is presented, a flutter error will occur.
-  static Future<bool> activateVoiceControlState({
-    required String identifier,
-  }) async {
-    final value = await _carPlayController.methodChannel.invokeMethod(
-      FCPChannelTypes.activateVoiceControlState.name,
-      identifier,
-    );
-    return value;
-  }
-
-  /// The identifier of the [CPVoiceControlTemplate]'s current voice control state.
-  ///
-  /// If this command is called before a voice control template is presented, a flutter error will occur.
-  static Future<String?> getActiveVoiceControlStateIdentifier() async {
-    final value = await _carPlayController.methodChannel.invokeMethod(
-      FCPChannelTypes.getActiveVoiceControlStateIdentifier.name,
-      null,
-    );
-    return value as String?;
-  }
-
-  /// Starts recording for the voice recognition.
-  ///
-  /// If this command is called before a voice control template is presented, a flutter error will occur.
-  static Future<bool> startVoiceControl() async {
-    final value = await _carPlayController.methodChannel.invokeMethod(
-      FCPChannelTypes.startVoiceControl.name,
-      null,
-    );
-    return value as bool? ?? false;
-  }
-
-  /// Stops recording for the voice recognition.
-  ///
-  /// If this command is called before a voice control template is presented, a flutter error will occur.
-  static Future<bool> stopVoiceControl() async {
-    final value = await _carPlayController.methodChannel.invokeMethod(
-      FCPChannelTypes.stopVoiceControl.name,
-      null,
-    );
-    return value as bool? ?? false;
-  }
-
-  /// Callback function will be fired when CarPlay recognized and transcripted user's voice each time.
-  static void addListenerOnSpeechRecognitionTranscriptChange({
-    Function(String transcript)? onSpeechRecognitionTranscriptChange,
-  }) {
-    _onSpeechRecognitionTranscriptChange = onSpeechRecognitionTranscriptChange;
-  }
-
-  /// Removes the callback function that has been set before in order to listen
-  /// on CarPlay speech recognition transcript changes.
-  static void removeListenerOnSpeechRecognitionTranscriptChange() {
-    _onSpeechRecognitionTranscriptChange = null;
-  }
-
-  /// Callback function will be fired when user cancels voice control.
-  static void addListenerOnCancelVoiceControl({
-    Function()? onCancelVoiceControl,
-  }) {
-    _onCancelVoiceControl = onCancelVoiceControl;
-  }
-
-  /// Removes the callback function that has been set before in order to listen
-  /// on user cancels voice control.
-  static void removeListenerOnCancelVoiceControl() {
-    _onCancelVoiceControl = null;
   }
 }
