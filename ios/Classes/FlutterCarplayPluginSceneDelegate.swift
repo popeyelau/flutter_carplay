@@ -9,7 +9,7 @@ import CarPlay
 
 @available(iOS 14.0, *)
 class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
-  static private var interfaceController: CPInterfaceController?
+  static public var interfaceController: CPInterfaceController?
 
   static public func forceUpdateRootTemplate() {
     let rootTemplate = SwiftFlutterCarplayPlugin.rootTemplate
@@ -30,6 +30,10 @@ class FlutterCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelega
 
   static public func pop(animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
       self.interfaceController?.popTemplate(animated: animated, completion: completion)
+  }
+
+  static public func pop(to targetTemplate: CPTemplate, animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {
+      self.interfaceController?.pop(to: targetTemplate, animated: animated, completion: completion)
   }
 
   static public func popToRootTemplate(animated: Bool, completion: ((Bool, Error?) -> Void)? = nil) {

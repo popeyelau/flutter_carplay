@@ -181,11 +181,26 @@ public class SwiftFlutterCarplayPlugin: NSObject, FlutterPlugin {
             }
 
             let animated = args["animated"] as? Bool ?? false
-            let template = FCPSharedNowPlayingTemplate(obj: args)
-            SwiftFlutterCarplayPlugin.templateStack.append(template)
-            let nowPlaying = template.get
-            nowPlaying.add(self)
-            FlutterCarPlaySceneDelegate.push(template: nowPlaying, animated: animated)
+            guard let exists = FlutterCarPlaySceneDelegate.interfaceController?.templates.first(where: { t in
+                t is CPNowPlayingTemplate
+            }) else {
+                let template = FCPSharedNowPlayingTemplate(obj: args)
+                SwiftFlutterCarplayPlugin.templateStack.append(template)
+                let nowPlaying = template.get
+                nowPlaying.add(self)
+                FlutterCarPlaySceneDelegate.push(template: nowPlaying, animated: animated)
+                result(true)
+                return
+            }
+        
+            
+            FlutterCarPlaySceneDelegate.pop(to: exists, animated: animated, completion: nil)
+            SwiftFlutterCarplayPlugin.templateStack.removeAll { t in
+                t is FCPSharedNowPlayingTemplate
+            }
+            let isFavorited = args["isFavorited"] as? Bool ?? false
+            let isShuffle = args["isShuffle"] as? Bool ?? false
+            FCPSharedNowPlayingTemplate.updateNowPlayingButtons(isFavorited: isFavorited, isShuffle: isShuffle)
             result(true)
 
         case FCPChannelTypes.updateNowPlaying:
